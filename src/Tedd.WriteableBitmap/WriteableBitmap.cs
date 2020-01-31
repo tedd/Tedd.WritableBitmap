@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO.MemoryMappedFiles;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -13,15 +14,18 @@ namespace Tedd
 {
     public class WriteableBitmap : IDisposable
     {
-        private readonly BitmapSource BitmapSource;
+        public BitmapSource BitmapSource { get; private set; }
         public int Width { get; private set; }
         public int Height { get; private set; }
         public int Length { get; private set; }
         public int BytesPerPixel { get; private set; }
         public int Stride { get; private set; }
         public int Offset { get; private set; }
-        public IntPtr IntPtr { get; private set; }
-        private bool _mustDispose = false;
+        public IntPtr MapView { get; private set; }
+        //private bool _mustDispose = false;
+        private bool _mustDisposeMemoryMapSection = false;
+        private bool _mustDisposeMapView = false;
+        public IntPtr MemoryMapSection { get; private set; }
 
         #region Ctor
         public WriteableBitmap(IntPtr intPtr, int width, int height, PixelFormat pixelFormat, int stride, int offset)
@@ -33,10 +37,13 @@ namespace Tedd
             BytesPerPixel = ((pixelFormat.BitsPerPixel + 7) / 8);
             Length = width * height * BytesPerPixel;
 
-            IntPtr = intPtr;
-            _mustDispose = false;
+            MemoryMapSection = intPtr;
 
-            BitmapSource = Imaging.CreateBitmapSourceFromMemorySection(IntPtr, width, height, pixelFormat, Stride, Offset);
+            MapView = Win32Interop.MapViewOfFile(MemoryMapSection, 0xF001F, 0, 0, (UInt32)Length);
+            _mustDisposeMapView = true;
+
+
+            BitmapSource = Imaging.CreateBitmapSourceFromMemorySection(MapView, width, height, pixelFormat, Stride, Offset);
         }
 
 
@@ -50,10 +57,12 @@ namespace Tedd
             BytesPerPixel = ((pixelFormat.BitsPerPixel + 7) / 8);
             Length = width * height * BytesPerPixel;
 
-            IntPtr = intPtr;
-            _mustDispose = false;
+            MemoryMapSection = intPtr;
 
-            BitmapSource = Imaging.CreateBitmapSourceFromMemorySection(IntPtr, width, height, pixelFormat, Stride, Offset);
+            MapView = Win32Interop.MapViewOfFile(MemoryMapSection, 0xF001F, 0, 0, (UInt32)Length);
+            _mustDisposeMapView = true;
+
+            BitmapSource = Imaging.CreateBitmapSourceFromMemorySection(MapView, width, height, pixelFormat, Stride, Offset);
         }
 
         public WriteableBitmap(int width, int height, PixelFormat pixelFormat)
@@ -65,27 +74,35 @@ namespace Tedd
             BytesPerPixel = ((pixelFormat.BitsPerPixel + 7) / 8);
             Length = width * height * BytesPerPixel;
 
-            IntPtr = Marshal.AllocHGlobal(Length);
-            _mustDispose = true;
+            //IntPtr = Marshal.AllocHGlobal(Length);
+            //this.MemoryMappedFile = MemoryMappedFile.CreateNew(null, Length, MemoryMappedFileAccess.ReadWrite);
+            //IntPtr = this.MemoryMappedFile.CreateViewAccessor().SafeMemoryMappedViewHandle.DangerousGetHandle();
 
-            BitmapSource = Imaging.CreateBitmapSourceFromMemorySection(IntPtr, width, height, pixelFormat, Stride, Offset);
+            MemoryMapSection = Win32Interop.CreateFileMapping(new IntPtr(-1), IntPtr.Zero, 0x04, 0, (UInt32)Length, null);
+            _mustDisposeMemoryMapSection = true;
+            MapView = Win32Interop.MapViewOfFile(MemoryMapSection, 0xF001F, 0, 0, (UInt32)Length);
+            _mustDisposeMapView = true;
+
+            BitmapSource = Imaging.CreateBitmapSourceFromMemorySection(MemoryMapSection, width, height, pixelFormat, Stride, Offset);
         }
+
+
         #endregion
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe Span<byte> ToSpanByte()
         {
-            return new Span<byte>(IntPtr.ToPointer(), Length);
+            return new Span<byte>(MapView.ToPointer(), Length);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe Span<UInt16> ToSpanUInt16()
         {
-            return new Span<UInt16>(IntPtr.ToPointer(), Length / sizeof(UInt16));
+            return new Span<UInt16>(MapView.ToPointer(), Length / sizeof(UInt16));
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe Span<UInt32> ToSpanUInt32()
         {
-            return new Span<UInt32>(IntPtr.ToPointer(), Length / sizeof(UInt32));
+            return new Span<UInt32>(MapView.ToPointer(), Length / sizeof(UInt32));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -106,19 +123,19 @@ namespace Tedd
 
                 var p = y * Width + x;
                 if (BytesPerPixel != 4)
-                    return ((UInt32*)IntPtr)[p];
+                    return ((UInt32*)MapView)[p];
                 if (BytesPerPixel == 2)
-                    return ((UInt16*)IntPtr)[p];
+                    return ((UInt16*)MapView)[p];
                 if (BytesPerPixel == 1)
-                    return ((Byte*)IntPtr)[p];
+                    return ((Byte*)MapView)[p];
 
                 if (BytesPerPixel == 3)
                 {
                     p *= 3;
                     return (UInt32)(
-                          ((UInt32)(((Byte*)IntPtr)[p + 0]) << 16)
-                        | ((UInt32)(((Byte*)IntPtr)[p + 1]) << 8)
-                        | ((UInt32)(((Byte*)IntPtr)[p + 2]))
+                          ((UInt32)(((Byte*)MapView)[p + 0]) << 16)
+                        | ((UInt32)(((Byte*)MapView)[p + 1]) << 8)
+                        | ((UInt32)(((Byte*)MapView)[p + 2]))
                         );
                 }
 
@@ -133,18 +150,18 @@ namespace Tedd
 
                 var p = y * Width + x;
                 if (BytesPerPixel == 4)
-                    ((UInt32*)IntPtr)[p] = value;
+                    ((UInt32*)MapView)[p] = value;
                 else if (BytesPerPixel == 2)
-                    ((UInt16*)IntPtr)[p] = (UInt16)value;
+                    ((UInt16*)MapView)[p] = (UInt16)value;
                 else if (BytesPerPixel == 1)
-                    ((Byte*)IntPtr)[p] = (Byte)value;
+                    ((Byte*)MapView)[p] = (Byte)value;
 
                 else if (BytesPerPixel == 3)
                 {
                     p *= 3;
-                    ((Byte*)IntPtr)[p + 0] = (Byte)(value >> 16);
-                    ((Byte*)IntPtr)[p + 1] = (Byte)(value >> 8);
-                    ((Byte*)IntPtr)[p + 2] = (Byte)value;
+                    ((Byte*)MapView)[p + 0] = (Byte)(value >> 16);
+                    ((Byte*)MapView)[p + 1] = (Byte)(value >> 8);
+                    ((Byte*)MapView)[p + 2] = (Byte)value;
                 }
 
                 throw new Exception("Unsupported pixel byte size, can't use indexer. Use direct pointer or span to modify.");
@@ -157,11 +174,11 @@ namespace Tedd
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Invalidate()
         {
-            // TODO: Not implemented in .Net Core BitmapSource yet
+            //// TODO: Not implemented in .Net Core BitmapSource yet
             ////Flip the _needsUpdate flag to true.
             ////If we don't do this, the cached bitmap would be used and the image won't update
             //var field = typeof(BitmapSource).GetField("_needsUpdate", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-            //field?.SetValue(this, true);
+            //field?.SetValue(BitmapSource, true);
         }
 
         #region CreateFrom
@@ -183,7 +200,7 @@ namespace Tedd
                     unsafe
                     {
                         byte* src = (byte*)data.Scan0.ToPointer();
-                        byte* dst = (byte*)ret.IntPtr.ToPointer();
+                        byte* dst = (byte*)ret.MapView.ToPointer();
 
                         int mp = image.Height * image.Width * ret.BytesPerPixel;
                         for (int p = 0; p < mp; p++)
@@ -202,11 +219,20 @@ namespace Tedd
         #region IDisposable
         private void ReleaseUnmanagedResources()
         {
-            if (_mustDispose)
+            if (_mustDisposeMapView)
             {
-                Marshal.FreeHGlobal(IntPtr);
-                _mustDispose = false;
+                //Marshal.FreeHGlobal(MapView);
+
+                Win32Interop.UnmapViewOfFile(MapView);
+                _mustDisposeMapView = false;
             }
+
+            if (_mustDisposeMemoryMapSection)
+            {
+                Win32Interop.CloseHandle(MemoryMapSection);
+                _mustDisposeMemoryMapSection = false;
+            }
+
         }
 
         /// <summary>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</summary>
