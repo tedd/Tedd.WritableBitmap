@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO.MemoryMappedFiles;
-using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -14,7 +12,7 @@ namespace Tedd
 {
     public class WriteableBitmap : IDisposable
     {
-        public BitmapSource BitmapSource { get; private set; }
+        public InteropBitmap BitmapSource { get; private set; }
         public int Width { get; private set; }
         public int Height { get; private set; }
         public int Length { get; private set; }
@@ -43,7 +41,7 @@ namespace Tedd
             _mustDisposeMapView = true;
 
 
-            BitmapSource = Imaging.CreateBitmapSourceFromMemorySection(MapView, width, height, pixelFormat, Stride, Offset);
+            BitmapSource = (InteropBitmap)Imaging.CreateBitmapSourceFromMemorySection(MapView, width, height, pixelFormat, Stride, Offset);
         }
 
 
@@ -62,7 +60,7 @@ namespace Tedd
             MapView = Win32Interop.MapViewOfFile(MemoryMapSection, 0xF001F, 0, 0, (UInt32)Length);
             _mustDisposeMapView = true;
 
-            BitmapSource = Imaging.CreateBitmapSourceFromMemorySection(MapView, width, height, pixelFormat, Stride, Offset);
+            BitmapSource = (InteropBitmap)Imaging.CreateBitmapSourceFromMemorySection(MapView, width, height, pixelFormat, Stride, Offset);
         }
 
         public WriteableBitmap(int width, int height, PixelFormat pixelFormat)
@@ -83,7 +81,7 @@ namespace Tedd
             MapView = Win32Interop.MapViewOfFile(MemoryMapSection, 0xF001F, 0, 0, (UInt32)Length);
             _mustDisposeMapView = true;
 
-            BitmapSource = Imaging.CreateBitmapSourceFromMemorySection(MemoryMapSection, width, height, pixelFormat, Stride, Offset);
+            BitmapSource = (InteropBitmap)Imaging.CreateBitmapSourceFromMemorySection(MemoryMapSection, width, height, pixelFormat, Stride, Offset);
         }
 
 
@@ -168,18 +166,21 @@ namespace Tedd
             }
         }
 
+#if HAS_INVALIDATE
+#endif
         /// <summary>
         /// Invalidates the bitmap causing a redraw
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Invalidate()
         {
+            BitmapSource.Invalidate();
             //// TODO: Not implemented in .Net Core BitmapSource yet
             ////Flip the _needsUpdate flag to true.
             ////If we don't do this, the cached bitmap would be used and the image won't update
             //var field = typeof(BitmapSource).GetField("_needsUpdate", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
             //field?.SetValue(BitmapSource, true);
-        }
+    }
 
         #region CreateFrom
         public static WriteableBitmap CreateFromFile(string file)
@@ -214,9 +215,9 @@ namespace Tedd
             }
         }
 
-        #endregion
+#endregion
 
-        #region IDisposable
+#region IDisposable
         private void ReleaseUnmanagedResources()
         {
             if (_mustDisposeMapView)
@@ -247,6 +248,8 @@ namespace Tedd
         {
             ReleaseUnmanagedResources();
         }
-        #endregion
+#endregion
+
     }
+
 }

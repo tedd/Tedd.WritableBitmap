@@ -1,19 +1,22 @@
-<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.0;netcoreapp3.1</TargetFrameworks>
+    <!--<TargetFramework>net462</TargetFramework>-->
+    <TargetFrameworks>net462;netcoreapp3.0;netcoreapp3.1</TargetFrameworks>
     <UseWPF>true</UseWPF>
     <LangVersion>latest</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Authors>Tedd Hansen</Authors>
     <Company>Tedd Hansen</Company>
-    <Description>Very fast writeable bitmap for modifying bitmap. With WPF bindings.</Description>
+    <Description>Very fast writeable bitmap for modifying bitmap. Content can be modified from other threads. With WPF bindings.</Description>
     <PackageTags>WriteableBitmap Fast Bitmap Modify Write Wpf Binding BitmapSource</PackageTags>
     <RepositoryType>Git</RepositoryType>
     <RepositoryUrl>https://github.com/tedd/Tedd.WritableBitmap</RepositoryUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/tedd/Tedd.WritableBitmap</PackageProjectUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.0.1</Version>
+    <PackageReleaseNotes>Now with Invalidate() and support for .Net 4.6.2 and up.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,8 +26,17 @@
     </None>
   </ItemGroup>
 
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net462'">
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>$(DefineConstants);TRACE</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
+    <PackageReference Include="System.Memory" Version="4.5.4" Condition="'$(TargetFramework)' == 'net462'" />
   </ItemGroup>
 
 </Project>
