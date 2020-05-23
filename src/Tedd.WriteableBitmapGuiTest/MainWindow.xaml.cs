@@ -31,6 +31,8 @@ namespace Tedd.WriteableBitmapGuiTest
             InitializeComponent();
             DataContext = _viewModel = new ViewModel();
 
+            _viewModel.TestBitmap.LoadFile("Test.jpg");
+
             _randomizeThread = new Thread(RandomizeLoop) {IsBackground=true};
             _randomizeThread.Start();
 
@@ -51,9 +53,9 @@ namespace Tedd.WriteableBitmapGuiTest
             var span = _viewModel.TestBitmap.ToSpanUInt32();
             for (; ; )
             {
-                var x = fr.Next(0, 199);
-                var y = fr.Next(0, 199);
-                var i = y * 200 + x;
+                var x = fr.Next(0, 200);
+                var y = fr.Next(0, 200);
+                var i = y * ViewModel.Width + x;
                 span[i] = (UInt32)fr.Next();
             }
         }

@@ -15,8 +15,8 @@
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/tedd/Tedd.WritableBitmap</PackageProjectUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.1</Version>
-    <PackageReleaseNotes>Now with Invalidate() and support for .Net 4.6.2 and up.</PackageReleaseNotes>
+    <Version>1.0.2</Version>
+    <PackageReleaseNotes>Can load images and convert pixel format (but not resize them).</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

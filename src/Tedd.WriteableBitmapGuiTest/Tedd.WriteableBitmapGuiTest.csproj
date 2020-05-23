@@ -105,5 +105,10 @@
       <Name>Tedd.WriteableBitmap</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Test.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

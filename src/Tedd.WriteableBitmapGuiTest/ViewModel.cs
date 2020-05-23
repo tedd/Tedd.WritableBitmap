@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Media;
 using Tedd.WriteableBitmapGuiTest.Annotations;
 
@@ -12,7 +13,9 @@ namespace Tedd.WriteableBitmapGuiTest
 {
     public class ViewModel: INotifyPropertyChanged
     {
-        private WriteableBitmap _testBitmap = new Tedd.WriteableBitmap(200, 200, PixelFormats.Bgra32);
+        public const int Width= 1920;
+        public const int Height= 1080;
+        private WriteableBitmap _testBitmap = new Tedd.WriteableBitmap(Width, Height, PixelFormats.Bgra32);
 
         public Tedd.WriteableBitmap TestBitmap
         {

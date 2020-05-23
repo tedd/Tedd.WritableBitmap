@@ -14,4 +14,10 @@
     <ProjectReference Include="..\Tedd.WriteableBitmap\Tedd.WriteableBitmap.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Test.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
