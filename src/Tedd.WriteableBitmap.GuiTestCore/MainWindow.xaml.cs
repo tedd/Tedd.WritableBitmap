@@ -35,6 +35,8 @@ namespace Tedd.WriteableBitmapGuiTestCore
             InitializeComponent();
             DataContext = _viewModel = new ViewModel();
 
+            _viewModel.TestBitmap.LoadFile("Test.jpg");
+
             _randomizeThread = new Thread(RandomizeLoop) { IsBackground = true };
             _randomizeThread.Start();
 
