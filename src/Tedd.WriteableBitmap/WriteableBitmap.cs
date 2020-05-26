@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -140,6 +141,14 @@ namespace Tedd
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetIndex(int x, int y) => y * Width + x;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt32 FromRgba(byte r, byte g, byte b, byte a) =>
+            ((UInt32) a << 24) | ((UInt32) r << 16) | ((UInt32) g << 8) | (UInt32) b;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt32 FromColor(Color color) =>
+            FromRgba(color.R, color.G, color.B, color.A);
+
         //public unsafe UInt32 this[int x, int y]
         //{
         //    get
@@ -242,40 +251,40 @@ namespace Tedd
             //field?.SetValue(BitmapSource, true);
         }
 
-        #region CreateFrom
-        public static WriteableBitmap CreateFromFile(string file)
-        {
-            // TODO: Fix
-            using (Image image = Image.FromFile(file))
-            {
-                using (Bitmap bmp = new Bitmap(image))
-                {
+        //#region CreateFrom
+        //public static WriteableBitmap CreateFromFile(string file)
+        //{
+        //    // TODO: Fix
+        //    using (Image image = Image.FromFile(file))
+        //    {
+        //        using (Bitmap bmp = new Bitmap(image))
+        //        {
 
-                    System.Drawing.Imaging.PixelFormat format = bmp.PixelFormat;
-                    var ret = new WriteableBitmap(image.Width, image.Height, PixelFormats.Bgr32);
+        //            System.Drawing.Imaging.PixelFormat format = bmp.PixelFormat;
+        //            var ret = new WriteableBitmap(image.Width, image.Height, PixelFormats.Bgr32);
 
-                    var data = bmp.LockBits(new Rectangle(0, 0, image.Width, image.Height), ImageLockMode.ReadOnly,
-                        format);
-                    int stride = data.Stride;
-                    int offset = stride - image.Width * ret.BytesPerPixel;
-                    unsafe
-                    {
-                        byte* src = (byte*)data.Scan0.ToPointer();
-                        byte* dst = (byte*)ret._mapView.ToPointer();
+        //            var data = bmp.LockBits(new Rectangle(0, 0, image.Width, image.Height), ImageLockMode.ReadOnly,
+        //                format);
+        //            int stride = data.Stride;
+        //            int offset = stride - image.Width * ret.BytesPerPixel;
+        //            unsafe
+        //            {
+        //                byte* src = (byte*)data.Scan0.ToPointer();
+        //                byte* dst = (byte*)ret._mapView.ToPointer();
 
-                        int mp = image.Height * image.Width * ret.BytesPerPixel;
-                        for (int p = 0; p < mp; p++)
-                        {
-                            dst[p] = src[p];
-                        }
-                    }
-                    return ret;
+        //                int mp = image.Height * image.Width * ret.BytesPerPixel;
+        //                for (int p = 0; p < mp; p++)
+        //                {
+        //                    dst[p] = src[p];
+        //                }
+        //            }
+        //            return ret;
 
-                }
-            }
-        }
+        //        }
+        //    }
+        //}
 
-        #endregion
+        //#endregion
 
         #region IDisposable
         private void ReleaseUnmanagedResources()
