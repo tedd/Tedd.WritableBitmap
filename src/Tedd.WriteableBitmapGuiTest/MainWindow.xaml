@@ -8,6 +8,6 @@
         Title="MainWindow" Height="450" Width="800"
         d:DataContext="ViewModel">
     <Grid>
-        <Image Source="{Binding TestBitmap.BitmapSource }" ></Image>
+        <Image Source="{Binding Bitmap.BitmapSource }" ></Image>
     </Grid>
 </Window>
