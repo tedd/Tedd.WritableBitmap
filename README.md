@@ -4,7 +4,6 @@ var bitmap = new Tedd.WriteableBitmap(100, 100, PixelFormats.Bgra32);
 var red = WriteableBitmap.FromRgba(255, 0, 0, 255);
 var yellow = WriteableBitmap.FromColor(Colors.Yellow);
 // Calculation is: ((UInt32) a << 24) | ((UInt32) r << 16) | ((UInt32) g << 8) | (UInt32)b
-// Note that despite format being Bgra32 WPF wants ARBG. 
 
 // Use spain pointer to fill image with red
 var spanPtr = bitmap.ToSpanUInt32();
@@ -55,7 +54,7 @@ Result
 
 # Speed
 
-Why is this faster than [System.Windows.Media.Imaging.WriteableBitmap](https://docs.microsoft.com/en-us/dotnet/api/system.windows.media.imaging.writeablebitmap)?
+Why is this faster than [System.Windows.Media.Imaging.WriteableBitmap](https://docs.microsoft.com/en-us/dotnet/api/system.windows.media.imaging.writeablebitmap)? 
 
 ## Overflow check
 

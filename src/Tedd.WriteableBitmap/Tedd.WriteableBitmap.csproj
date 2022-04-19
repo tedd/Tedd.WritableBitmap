@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!--<TargetFramework>net462</TargetFramework>-->
     <TargetFrameworks>net60-windows</TargetFrameworks>
     <UseWPF>true</UseWPF>
     <LangVersion>latest</LangVersion>
@@ -11,7 +10,7 @@
     <Description>Very fast writeable bitmap for modifying bitmap. Content can be modified from other threads. With WPF bindings.</Description>
     <PackageTags>WriteableBitmap Fast Bitmap Modify Write Wpf Binding BitmapSource</PackageTags>
     <RepositoryType>Git</RepositoryType>
-    <RepositoryUrl>https://github.com/tedd/Tedd.WritableBitmap</RepositoryUrl>
+    <RepositoryUrl>https://github.com/tedd/Tedd.WritableBitmap.git</RepositoryUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/tedd/Tedd.WritableBitmap</PackageProjectUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -35,8 +34,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
-    <PackageReference Include="System.Memory" Version="4.5.4" Condition="'$(TargetFramework)' == 'net462'" />
   </ItemGroup>
 
 </Project>
