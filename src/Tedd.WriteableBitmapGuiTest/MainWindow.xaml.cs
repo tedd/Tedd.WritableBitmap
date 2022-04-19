@@ -20,6 +20,9 @@ namespace Tedd.WriteableBitmapGuiTest
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
     public partial class MainWindow : Window
     {
         private Timer _timer;
@@ -33,7 +36,7 @@ namespace Tedd.WriteableBitmapGuiTest
 
             _viewModel.TestBitmap.LoadFile("Test.jpg");
 
-            _randomizeThread = new Thread(RandomizeLoop) {IsBackground=true};
+            _randomizeThread = new Thread(RandomizeLoop) { IsBackground = true };
             _randomizeThread.Start();
 
             _timer = new Timer(100);
@@ -60,6 +63,6 @@ namespace Tedd.WriteableBitmapGuiTest
             }
         }
 
-      
+
     }
 }

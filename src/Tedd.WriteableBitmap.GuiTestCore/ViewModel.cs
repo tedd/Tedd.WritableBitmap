@@ -10,7 +10,7 @@ namespace Tedd.WriteableBitmapGuiTestCore
 {
     public class ViewModel
     {
-        private WriteableBitmap _testBitmap = new Tedd.WriteableBitmap(200, 200, PixelFormats.Bgra32);
+        private WriteableBitmap _testBitmap = new Tedd.WriteableBitmap(400, 400, PixelFormats.Bgra32);
 
         public Tedd.WriteableBitmap TestBitmap
         {

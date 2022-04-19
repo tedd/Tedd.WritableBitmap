@@ -40,7 +40,7 @@ namespace Tedd.WriteableBitmapGuiTestCore
             _randomizeThread = new Thread(RandomizeLoop) { IsBackground = true };
             _randomizeThread.Start();
 
-            _timer = new Timer(100);
+            _timer = new Timer(1);
             _timer.Start();
             _timer.Elapsed += (sender, args) =>
             {
@@ -53,14 +53,16 @@ namespace Tedd.WriteableBitmapGuiTestCore
 
         private void RandomizeLoop()
         {
-            var fr = new Random();
+            var fr = new FastRandom();
             var span = _viewModel.TestBitmap.ToSpanUInt32();
+            var width = _viewModel.TestBitmap.Width;
+            var height = _viewModel.TestBitmap.Height;
             for (; ; )
             {
-                var x = fr.Next(0, 199);
-                var y = fr.Next(0, 199);
-                var i = y * 200 + x;
-                span[i] = (UInt32)fr.Next();
+                var x = fr.Next(0, width);
+                var y = fr.Next(0, height);
+                var i = y * width + x;
+                span[i] = fr.NextUInt32() | 0xFF000000;// & 0x00FFFFFF;
             }
         }
 

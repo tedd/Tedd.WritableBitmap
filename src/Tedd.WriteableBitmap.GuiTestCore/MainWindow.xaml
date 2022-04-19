@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:Tedd.WriteableBitmapGuiTestCore"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800"
-        d:DataContext="ViewModel">
+        d:DataContext="ViewModel"
+        Background="Black">
     <Grid>
         <Image Source="{Binding TestBitmap.BitmapSource }" ></Image>
     </Grid>

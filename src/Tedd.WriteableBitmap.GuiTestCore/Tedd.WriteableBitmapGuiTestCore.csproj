@@ -2,12 +2,12 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net60-windows</TargetFramework>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Tedd.RandomUtils" Version="1.0.4" />
+    <PackageReference Include="Tedd.RandomUtils" Version="1.0.6" />
   </ItemGroup>
 
   <ItemGroup>
