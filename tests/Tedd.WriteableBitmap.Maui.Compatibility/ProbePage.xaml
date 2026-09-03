@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Tedd.Maui.Compatibility.ProbePage"
+    x:DataType="local:ProbePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:Tedd.Maui.Compatibility"
+    xmlns:tedd="clr-namespace:Tedd.Maui;assembly=Tedd.WriteableBitmap.Maui">
+    <tedd:WriteableBitmapView
+        Aspect="AspectFit"
+        FilterMode="Nearest"
+        Source="{Binding Bitmap}" />
+</ContentPage>

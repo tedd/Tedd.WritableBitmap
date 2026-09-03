@@ -10,15 +10,17 @@ jobs:
   build-test-publish:
 
     runs-on: windows-latest
+    env:
+      MAUI_COMPAT_PACKAGE_VERSION: 0.0.0-ci.${{ github.run_id }}.${{ github.run_attempt }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Setup .NET
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 10.0.x
     - name: Restore dependencies
       working-directory: src
       run: dotnet restore
@@ -29,21 +31,35 @@ jobs:
       working-directory: src
       run: dotnet test --no-build --verbosity normal
 
+    - name: Restore MAUI workloads
+      run: dotnet workload restore tests/Tedd.WriteableBitmap.Maui.Compatibility/Tedd.WriteableBitmap.Maui.Compatibility.csproj --skip-manifest-update
+    - name: Pack MAUI package for compatibility tests
+      run: dotnet pack src/Tedd.WriteableBitmap.Maui/Tedd.WriteableBitmap.Maui.csproj --configuration Release --output artifacts -p:PackageVersion="${{ env.MAUI_COMPAT_PACKAGE_VERSION }}"
+    - name: Compile MAUI consumer for Windows
+      run: dotnet build tests/Tedd.WriteableBitmap.Maui.Compatibility/Tedd.WriteableBitmap.Maui.Compatibility.csproj --configuration Release --framework net10.0-windows10.0.19041.0 -p:UsePackedTeddMaui=true -p:TeddMauiPackageVersion="${{ env.MAUI_COMPAT_PACKAGE_VERSION }}" -p:RestoreAdditionalProjectSources="${{ github.workspace }}/artifacts"
+    - name: Compile MAUI consumer for Android
+      run: dotnet build tests/Tedd.WriteableBitmap.Maui.Compatibility/Tedd.WriteableBitmap.Maui.Compatibility.csproj --configuration Release --framework net10.0-android -p:UsePackedTeddMaui=true -p:TeddMauiPackageVersion="${{ env.MAUI_COMPAT_PACKAGE_VERSION }}" -p:RestoreAdditionalProjectSources="${{ github.workspace }}/artifacts"
+    - name: Compile MAUI consumer for iOS
+      run: dotnet build tests/Tedd.WriteableBitmap.Maui.Compatibility/Tedd.WriteableBitmap.Maui.Compatibility.csproj --configuration Release --framework net10.0-ios --runtime iossimulator-x64 -p:UsePackedTeddMaui=true -p:TeddMauiPackageVersion="${{ env.MAUI_COMPAT_PACKAGE_VERSION }}" -p:RestoreAdditionalProjectSources="${{ github.workspace }}/artifacts"
+    - name: Compile MAUI consumer for Mac Catalyst
+      run: dotnet build tests/Tedd.WriteableBitmap.Maui.Compatibility/Tedd.WriteableBitmap.Maui.Compatibility.csproj --configuration Release --framework net10.0-maccatalyst --runtime maccatalyst-x64 -p:UsePackedTeddMaui=true -p:TeddMauiPackageVersion="${{ env.MAUI_COMPAT_PACKAGE_VERSION }}" -p:RestoreAdditionalProjectSources="${{ github.workspace }}/artifacts"
+
 #    - name: Get version
 #      uses: dotnet/nbgv@master
 #      id: nbgv
 #    - run: echo 'SemVer2=${{ steps.nbgv.outputs.SemVer2 }}'
 
     # Publish
-    - name: publish on version change
-      id: publish_nuget
+    - name: Publish WPF package on version change
+      id: publish_wpf_nuget
+      if: github.event_name == 'push'
       uses: tedd/publish-nuget-neo@v1
       with:
         # NuGet API key to authenticate on NuGet server.
         NUGET_KEY: ${{secrets.NUGET_API_KEY}}
 
         # Full path to project file. (Example: src/MyNuGetProject/MyNuGetProject.csproj) (Default: Will scan all .csproj/.fsproj/.vbproj files and use first it finds that has GeneratePackageOnBuild set to true.)
-        #PROJECT_FILE_PATH:
+        PROJECT_FILE_PATH: src/Tedd.WriteableBitmap/Tedd.WriteableBitmap.csproj
 
         # URL to NuGet server. (Default: https://api.nuget.org)
         #NUGET_SOURCE: https://api.nuget.org
@@ -74,3 +90,15 @@ jobs:
         
         # Log level (DEBUG, INFO, WARN). (default: DEBUG)
         #LOG_LEVEL: DEBUG
+
+    - name: Publish MAUI package on version change
+      id: publish_maui_nuget
+      if: github.event_name == 'push'
+      uses: tedd/publish-nuget-neo@v1
+      with:
+        NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+        PROJECT_FILE_PATH: src/Tedd.WriteableBitmap.Maui/Tedd.WriteableBitmap.Maui.csproj
+        PACKAGE_NAME: Tedd.WriteableBitmap.Maui
+        INCLUDE_SYMBOLS: true
+        TAG_COMMIT: true
+        TAG_FORMAT: maui-v*

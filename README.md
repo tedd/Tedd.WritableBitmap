@@ -1,4 +1,14 @@
 # Tedd.WritableBitmap
+
+This repository contains two deliberately separate packages:
+
+- `Tedd.WriteableBitmap` for WPF on .NET Framework 4.6.2 or later, .NET Core 3.1, and .NET 6.0 or later.
+- `Tedd.WriteableBitmap.Maui` for .NET 10 MAUI on Android, iOS, Mac Catalyst, and Windows.
+
+The MAUI package uses a directly mutable, platform-native triple buffer and a GPU-backed `SKGLView`. It avoids frame encoding and managed staging images while allowing CPU frame production to overlap GPU presentation; normal CPU-to-GPU upload still occurs. See the [MAUI package documentation](src/Tedd.WriteableBitmap.Maui/README.md) for registration, XAML, threading, and pixel-format requirements.
+
+## WPF
+
 ```c#
 var bitmap = new Tedd.WriteableBitmap(100, 100, PixelFormats.Bgra32);
 var red = WriteableBitmap.FromRgba(255, 0, 0, 255);
@@ -27,7 +37,7 @@ for (var x = 25; x < 75; x++) {
         //var i = y * bitmap.Width + x;
         // The helper function GetIndex() will do this for you
         var i = bitmap.GetIndex(x, y);
-        ptr[y] = yellow;
+        ptr[i] = yellow;
     }
 }
 ```
@@ -109,4 +119,3 @@ A way to bypass this is to allocate memory directly from the operating system. T
 ## Summary
 
 Memory can be accessed faster by using unmanaged memory allocated from the operating system. It can further be accessed even faster by accepting the risk of writing outside of the memory area (overflow).
-

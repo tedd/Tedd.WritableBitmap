@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0-android;net10.0-ios;net10.0-maccatalyst;net10.0-windows10.0.19041.0</TargetFrameworks>
+    <UseMaui>true</UseMaui>
+    <EnableDefaultMauiItems>false</EnableDefaultMauiItems>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <TeddMauiPackageVersion Condition="'$(TeddMauiPackageVersion)' == ''">1.1.0</TeddMauiPackageVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.20" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(UsePackedTeddMaui)' == 'true'">
+    <PackageReference Include="Tedd.WriteableBitmap.Maui" Version="$(TeddMauiPackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(UsePackedTeddMaui)' != 'true'">
+    <ProjectReference Include="..\..\src\Tedd.WriteableBitmap.Maui\Tedd.WriteableBitmap.Maui.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Remove="ProbePage.xaml" />
+    <MauiXaml Include="ProbePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+  </ItemGroup>
+
+</Project>
