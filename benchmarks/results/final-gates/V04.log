@@ -1,0 +1,11 @@
+  Determining projects to restore...
+  Restored D:\SourceCode\Tedd.WritableBitmap\tests\Tedd.WriteableBitmap.Maui.Tests\Tedd.WriteableBitmap.Maui.Tests.csproj (in 277 ms).
+  1 of 2 projects are up-to-date for restore.
+C:\Program Files\dotnet\sdk\11.0.100-preview.7.26381.103\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(385,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [D:\SourceCode\Tedd.WritableBitmap\tests\Tedd.WriteableBitmap.Maui.Tests\Tedd.WriteableBitmap.Maui.Tests.csproj::TargetFramework=net10.0]
+  V04 -> D:\SourceCode\Tedd.WritableBitmap\benchmarks\archives\V04\bin\Release\net10.0\Tedd.WriteableBitmap.Archive.V04.dll
+  Tedd.WriteableBitmap.Maui.Tests -> D:\SourceCode\Tedd.WritableBitmap\tests\Tedd.WriteableBitmap.Maui.Tests\bin\Release\net10.0\Tedd.WriteableBitmap.Maui.Tests.dll
+Test run for D:\SourceCode\Tedd.WritableBitmap\tests\Tedd.WriteableBitmap.Maui.Tests\bin\Release\net10.0\Tedd.WriteableBitmap.Maui.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+Results File: D:\SourceCode\Tedd.WritableBitmap\benchmarks\results\final-gates\V04.trx
+
+Passed!  - Failed:     0, Passed:   193, Skipped:     0, Total:   193, Duration: 176 ms - Tedd.WriteableBitmap.Maui.Tests.dll (net10.0)

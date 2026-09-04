@@ -1,0 +1,2 @@
+# Sealed benchmark snapshots are verified byte-for-byte against SHA-256 manifests.
+benchmarks/archives/** -text

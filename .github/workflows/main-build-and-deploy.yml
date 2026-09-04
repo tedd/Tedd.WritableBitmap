@@ -6,6 +6,13 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: write
+
+concurrency:
+  group: nuget-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build-test-publish:
 
@@ -21,20 +28,37 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
+        global-json-file: global.json
     - name: Restore dependencies
       working-directory: src
       run: dotnet restore
     - name: Build
       working-directory: src
-      run: dotnet build --no-restore
+      run: dotnet build --configuration Release --no-restore
     - name: Test
       working-directory: src
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test --configuration Release --no-build --verbosity normal --collect "XPlat Code Coverage" --settings ../tests/coverage.runsettings --results-directory ../artifacts/coverage --logger trx
+    - name: Upload test results and coverage
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-and-coverage
+        path: artifacts/coverage
+        if-no-files-found: warn
 
-    - name: Restore MAUI workloads
-      run: dotnet workload restore tests/Tedd.WriteableBitmap.Maui.Compatibility/Tedd.WriteableBitmap.Maui.Compatibility.csproj --skip-manifest-update
     - name: Pack MAUI package for compatibility tests
-      run: dotnet pack src/Tedd.WriteableBitmap.Maui/Tedd.WriteableBitmap.Maui.csproj --configuration Release --output artifacts -p:PackageVersion="${{ env.MAUI_COMPAT_PACKAGE_VERSION }}"
+      run: dotnet pack src/Tedd.WriteableBitmap.Maui/Tedd.WriteableBitmap.Maui.csproj --configuration Release --no-build --no-restore --output artifacts -p:PackageVersion="${{ env.MAUI_COMPAT_PACKAGE_VERSION }}"
+    - name: Select .NET 10 SDK for platform compatibility checks
+      shell: pwsh
+      run: |
+        Copy-Item global.json artifacts/package-sdk.global.json
+        dotnet new globaljson --sdk-version 10.0.400 --roll-forward latestFeature --force
+    - name: Restore MAUI workloads
+      env:
+        UsePackedTeddMaui: 'true'
+        TeddMauiPackageVersion: ${{ env.MAUI_COMPAT_PACKAGE_VERSION }}
+        RestoreAdditionalProjectSources: ${{ github.workspace }}/artifacts
+      run: dotnet workload restore tests/Tedd.WriteableBitmap.Maui.Compatibility/Tedd.WriteableBitmap.Maui.Compatibility.csproj --skip-manifest-update
     - name: Compile MAUI consumer for Windows
       run: dotnet build tests/Tedd.WriteableBitmap.Maui.Compatibility/Tedd.WriteableBitmap.Maui.Compatibility.csproj --configuration Release --framework net10.0-windows10.0.19041.0 -p:UsePackedTeddMaui=true -p:TeddMauiPackageVersion="${{ env.MAUI_COMPAT_PACKAGE_VERSION }}" -p:RestoreAdditionalProjectSources="${{ github.workspace }}/artifacts"
     - name: Compile MAUI consumer for Android
@@ -43,62 +67,62 @@ jobs:
       run: dotnet build tests/Tedd.WriteableBitmap.Maui.Compatibility/Tedd.WriteableBitmap.Maui.Compatibility.csproj --configuration Release --framework net10.0-ios --runtime iossimulator-x64 -p:UsePackedTeddMaui=true -p:TeddMauiPackageVersion="${{ env.MAUI_COMPAT_PACKAGE_VERSION }}" -p:RestoreAdditionalProjectSources="${{ github.workspace }}/artifacts"
     - name: Compile MAUI consumer for Mac Catalyst
       run: dotnet build tests/Tedd.WriteableBitmap.Maui.Compatibility/Tedd.WriteableBitmap.Maui.Compatibility.csproj --configuration Release --framework net10.0-maccatalyst --runtime maccatalyst-x64 -p:UsePackedTeddMaui=true -p:TeddMauiPackageVersion="${{ env.MAUI_COMPAT_PACKAGE_VERSION }}" -p:RestoreAdditionalProjectSources="${{ github.workspace }}/artifacts"
+    - name: Restore package SDK selection
+      if: always()
+      shell: pwsh
+      run: |
+        if (Test-Path artifacts/package-sdk.global.json) {
+          Copy-Item artifacts/package-sdk.global.json global.json -Force
+        }
 
-#    - name: Get version
-#      uses: dotnet/nbgv@master
-#      id: nbgv
-#    - run: echo 'SemVer2=${{ steps.nbgv.outputs.SemVer2 }}'
-
-    # Publish
-    - name: Publish WPF package on version change
-      id: publish_wpf_nuget
-      if: github.event_name == 'push'
-      uses: tedd/publish-nuget-neo@v1
+    - name: Pack release packages
+      shell: pwsh
+      run: |
+        dotnet pack src/Tedd.WriteableBitmap/Tedd.WriteableBitmap.csproj --configuration Release --no-build --no-restore --output artifacts/packages -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        dotnet pack src/Tedd.WriteableBitmap.Maui/Tedd.WriteableBitmap.Maui.csproj --configuration Release --no-build --no-restore --output artifacts/packages -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    - name: Upload release packages
+      uses: actions/upload-artifact@v4
       with:
-        # NuGet API key to authenticate on NuGet server.
-        NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-
-        # Full path to project file. (Example: src/MyNuGetProject/MyNuGetProject.csproj) (Default: Will scan all .csproj/.fsproj/.vbproj files and use first it finds that has GeneratePackageOnBuild set to true.)
-        PROJECT_FILE_PATH: src/Tedd.WriteableBitmap/Tedd.WriteableBitmap.csproj
-
-        # URL to NuGet server. (Default: https://api.nuget.org)
-        #NUGET_SOURCE: https://api.nuget.org
-
-        # Add symbols to NuGet package. (Default: false)
-        INCLUDE_SYMBOLS: true
-        
-        # Current Git commit should be tagged upon successful upload to NuGet. (Default: false)
-        TAG_COMMIT: true
-        
-        # Name of Git tag. * will be replaced by version number. (Default: v*)
-        #TAG_FORMAT: v*
-
-        # NuGet package name. This is used for checking NuGet server if package version already exists. (Default: name extracted from PROJECT_FILE_PATH)
-        # PACKAGE_NAME:
-
-        # Path to file containing version number to extract using regex. (Default: $PROJECT_FILE_PATH)
-        # VERSION_FILE_PATH:
-
-        # Regex pattern to extract version info in a capturing group. (Default: ^\\s*<Version>(.*)<\\/Version>\\s*$)
-        # VERSION_REGEX: ^\s*<Version>(.*)<\/Version>\s*$
-
-        # Useful with external providers like Nerdbank.GitVersioning where you could for example set it to variable (dollar){{env.GitBuildVersionSimple}}. Ignores VERSION_FILE_PATH & VERSION_REGEX.
-        #VERSION_STATIC: ${{env.GitBuildVersionSimple}}
-        
-        # Rebuild project in release mode? You may turn this off if you have built project in previous step. (default: true)
-        #REBUILD_PROJECT: true
-        
-        # Log level (DEBUG, INFO, WARN). (default: DEBUG)
-        #LOG_LEVEL: DEBUG
-
-    - name: Publish MAUI package on version change
-      id: publish_maui_nuget
-      if: github.event_name == 'push'
-      uses: tedd/publish-nuget-neo@v1
-      with:
-        NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-        PROJECT_FILE_PATH: src/Tedd.WriteableBitmap.Maui/Tedd.WriteableBitmap.Maui.csproj
-        PACKAGE_NAME: Tedd.WriteableBitmap.Maui
-        INCLUDE_SYMBOLS: true
-        TAG_COMMIT: true
-        TAG_FORMAT: maui-v*
+        name: nuget-packages
+        path: artifacts/packages/*.*nupkg
+        if-no-files-found: error
+    - name: Publish WPF and MAUI to NuGet
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      shell: pwsh
+      env:
+        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+      run: |
+        if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) {
+          throw 'NUGET_API_KEY is not configured.'
+        }
+        $packages = @(Get-ChildItem artifacts/packages -Filter *.nupkg)
+        if ($packages.Count -ne 2) { throw 'Expected both WPF and MAUI release packages.' }
+        foreach ($package in $packages) {
+          dotnet nuget push $package.FullName --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --skip-duplicate
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        }
+    - name: Tag published versions
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      shell: pwsh
+      run: |
+        git fetch --tags origin
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        $projects = @(
+          @{ Path = 'src/Tedd.WriteableBitmap/Tedd.WriteableBitmap.csproj'; Prefix = 'v' },
+          @{ Path = 'src/Tedd.WriteableBitmap.Maui/Tedd.WriteableBitmap.Maui.csproj'; Prefix = 'maui-v' }
+        )
+        foreach ($project in $projects) {
+          [xml] $definition = Get-Content -LiteralPath $project.Path -Raw
+          $version = @($definition.Project.PropertyGroup.Version | Where-Object { $_ })[0]
+          if (-not $version) { throw "No package version in $($project.Path)." }
+          $tag = $project.Prefix + $version
+          $existing = git tag --list $tag
+          if (-not $existing) {
+            git tag $tag $env:GITHUB_SHA
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            git push origin "refs/tags/$tag"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+        }

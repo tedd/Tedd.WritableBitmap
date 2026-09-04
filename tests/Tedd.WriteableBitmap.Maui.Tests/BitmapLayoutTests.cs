@@ -55,6 +55,11 @@ public sealed class BitmapLayoutTests
     [InlineData(1, 0, 1, 1)]
     [InlineData(1, 1, 0, 1)]
     [InlineData(1, 1, 1, 0)]
+    [InlineData(-1, 1, 1, 1)]
+    [InlineData(1, -1, 1, 1)]
+    [InlineData(1, 1, -1, 1)]
+    [InlineData(1, 1, 1, -1)]
+    [InlineData(int.MinValue, int.MinValue, int.MinValue, int.MinValue)]
     public void InvalidDimensionsProduceAnEmptyDestination(
         int sourceWidth,
         int sourceHeight,
@@ -69,5 +74,63 @@ public sealed class BitmapLayoutTests
                 targetWidth,
                 targetHeight,
                 Aspect.AspectFit));
+    }
+
+    [Theory]
+    [InlineData(Aspect.Fill)]
+    [InlineData(Aspect.AspectFit)]
+    [InlineData(Aspect.AspectFill)]
+    [InlineData(Aspect.Center)]
+    public void EqualSourceAndTargetDimensionsNeedNoClear(Aspect aspect)
+    {
+        var destination = BitmapLayout.CalculateDestination(13, 7, 13, 7, aspect);
+
+        Assert.Equal(new SKRect(0, 0, 13, 7), destination);
+        Assert.False(BitmapLayout.RequiresClear(destination, 13, 7));
+    }
+
+    [Theory]
+    [InlineData(Aspect.AspectFit, 0, 2.5f, 20, 12.5f)]
+    [InlineData(Aspect.AspectFill, -5, 0, 25, 15)]
+    [InlineData(Aspect.Center, -10, -2.5f, 30, 17.5f)]
+    [InlineData(Aspect.Fill, 0, 0, 20, 15)]
+    public void DownscalingPreservesSubpixelCentering(
+        Aspect aspect, float left, float top, float right, float bottom)
+    {
+        Assert.Equal(new SKRect(left, top, right, bottom),
+            BitmapLayout.CalculateDestination(40, 20, 20, 15, aspect));
+    }
+
+    [Fact]
+    public void CenterKeepsOriginalSizeWithHalfPixelOffsets()
+    {
+        Assert.Equal(new SKRect(3.5f, 2.5f, 6.5f, 5.5f),
+            BitmapLayout.CalculateDestination(3, 3, 10, 8, Aspect.Center));
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(int.MaxValue)]
+    public void UnknownAspectFallsBackToAspectFit(int aspect)
+    {
+        Assert.Equal(new SKRect(0, 50, 200, 150),
+            BitmapLayout.CalculateDestination(100, 50, 200, 200, (Aspect)aspect));
+    }
+
+    [Theory]
+    [InlineData(1, 0, 100, 80, true)]
+    [InlineData(0, 1, 100, 80, true)]
+    [InlineData(0, 0, 99, 80, true)]
+    [InlineData(0, 0, 100, 79, true)]
+    [InlineData(0, 0, 100, 80, false)]
+    [InlineData(-1, -1, 101, 81, false)]
+    [InlineData(0, 0, 0, 0, true)]
+    [InlineData(0.001f, 0, 100, 80, true)]
+    [InlineData(0, 0, 100, 79.999f, true)]
+    public void ClearIsRequiredForAnyUncoveredEdge(
+        float left, float top, float right, float bottom, bool expected)
+    {
+        Assert.Equal(expected,
+            BitmapLayout.RequiresClear(new SKRect(left, top, right, bottom), 100, 80));
     }
 }

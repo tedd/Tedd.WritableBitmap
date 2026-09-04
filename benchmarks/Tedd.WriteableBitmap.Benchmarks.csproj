@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="*Benchmarks.cs" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+    <ProjectReference Include="archives/V00/V00.csproj" Aliases="V00" />
+    <ProjectReference Include="archives/V01/V01.csproj" Aliases="V01" />
+    <ProjectReference Include="archives/V02/V02.csproj" Aliases="V02" />
+    <ProjectReference Include="archives/V03/V03.csproj" Aliases="V03" />
+    <ProjectReference Include="archives/V04/V04.csproj" Aliases="V04" />
+    <ProjectReference Include="archives/V07/V07.csproj" Aliases="V07" />
+    <ProjectReference Include="archives/V08/V08.csproj" Aliases="V08" />
+  </ItemGroup>
+</Project>
+

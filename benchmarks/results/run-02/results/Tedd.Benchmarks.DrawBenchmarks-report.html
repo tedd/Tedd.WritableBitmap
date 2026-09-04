@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>Tedd.Benchmarks.DrawBenchmarks-20260903-221355</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet v0.15.8, Windows 11 (10.0.26200.9168/25H2/2025Update/HudsonValley2)
+AMD Ryzen 9 5950X 3.40GHz, 1 CPU, 32 logical and 16 physical cores
+.NET SDK 11.0.100-preview.7.26381.103
+  [Host] : .NET 10.0.11 (10.0.11, 10.0.1126.37416), X64 RyuJIT x86-64-v3
+  Net10  : .NET 10.0.11 (10.0.11, 10.0.1126.37416), X64 RyuJIT x86-64-v3
+</code></pre>
+<pre><code>Job=Net10  IterationCount=12  IterationTime=500ms  
+LaunchCount=1  WarmupCount=5  
+</code></pre>
+
+<table>
+<thead><tr><th>Method</th><th>Size</th><th>PublishEachDraw</th><th>Mean </th><th>Error </th><th>StdDev</th><th>Ratio</th><th>RatioSD</th><th>Gen0</th><th>Allocated</th><th>Alloc Ratio</th>
+</tr>
+</thead><tbody><tr><td>Before</td><td>32</td><td>False</td><td>1,239.9 ns</td><td>184.96 ns</td><td>144.41 ns</td><td>1.01</td><td>0.16</td><td>0.0073</td><td>136 B</td><td>1.00</td>
+</tr><tr><td>After</td><td>32</td><td>False</td><td>380.6 ns</td><td>15.09 ns</td><td>9.98 ns</td><td>0.31</td><td>0.03</td><td>-</td><td>-</td><td>0.00</td>
+</tr><tr><td>Before</td><td>32</td><td>True</td><td>1,123.4 ns</td><td>118.41 ns</td><td>78.32 ns</td><td>1.00</td><td>0.09</td><td>0.0075</td><td>136 B</td><td>1.00</td>
+</tr><tr><td>After</td><td>32</td><td>True</td><td>1,596.6 ns</td><td>233.43 ns</td><td>182.25 ns</td><td>1.43</td><td>0.18</td><td>0.0062</td><td>136 B</td><td>1.00</td>
+</tr><tr><td>Before</td><td>1024</td><td>False</td><td>80,635.2 ns</td><td>6,889.02 ns</td><td>5,378.50 ns</td><td>1.00</td><td>0.09</td><td>-</td><td>136 B</td><td>1.00</td>
+</tr><tr><td>After</td><td>1024</td><td>False</td><td>79,703.9 ns</td><td>6,855.93 ns</td><td>5,352.66 ns</td><td>0.99</td><td>0.09</td><td>-</td><td>-</td><td>0.00</td>
+</tr><tr><td>Before</td><td>1024</td><td>True</td><td>88,807.7 ns</td><td>8,279.40 ns</td><td>6,464.01 ns</td><td>1.00</td><td>0.10</td><td>-</td><td>136 B</td><td>1.00</td>
+</tr><tr><td>After</td><td>1024</td><td>True</td><td>82,891.6 ns</td><td>11,723.83 ns</td><td>8,477.10 ns</td><td>0.94</td><td>0.11</td><td>-</td><td>136 B</td><td>1.00</td>
+</tr></tbody></table>
+</body>
+</html>

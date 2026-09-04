@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>Tedd.Benchmarks.AcquisitionBenchmarks-20260903-222305</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet v0.15.8, Windows 11 (10.0.26200.9168/25H2/2025Update/HudsonValley2)
+AMD Ryzen 9 5950X 3.40GHz, 1 CPU, 32 logical and 16 physical cores
+.NET SDK 11.0.100-preview.7.26381.103
+  [Host] : .NET 10.0.11 (10.0.11, 10.0.1126.37416), X64 RyuJIT x86-64-v3
+  Net10  : .NET 10.0.11 (10.0.11, 10.0.1126.37416), X64 RyuJIT x86-64-v3
+</code></pre>
+<pre><code>Job=Net10  IterationCount=10  IterationTime=250ms  
+LaunchCount=1  WarmupCount=3  
+</code></pre>
+
+<table>
+<thead><tr><th>Method</th><th>BufferCount</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Ratio</th><th>RatioSD</th><th>Allocated</th><th>Alloc Ratio</th>
+</tr>
+</thead><tbody><tr><td>Before</td><td>2</td><td>15.46 ns</td><td>0.391 ns</td><td>0.205 ns</td><td>1.00</td><td>0.02</td><td>-</td><td>NA</td>
+</tr><tr><td>After</td><td>2</td><td>12.96 ns</td><td>0.933 ns</td><td>0.555 ns</td><td>0.84</td><td>0.04</td><td>-</td><td>NA</td>
+</tr><tr><td>Before</td><td>3</td><td>15.52 ns</td><td>1.631 ns</td><td>1.079 ns</td><td>1.00</td><td>0.09</td><td>-</td><td>NA</td>
+</tr><tr><td>After</td><td>3</td><td>14.04 ns</td><td>2.706 ns</td><td>1.790 ns</td><td>0.91</td><td>0.13</td><td>-</td><td>NA</td>
+</tr><tr><td>Before</td><td>8</td><td>16.57 ns</td><td>1.944 ns</td><td>1.157 ns</td><td>1.00</td><td>0.09</td><td>-</td><td>NA</td>
+</tr><tr><td>After</td><td>8</td><td>14.73 ns</td><td>1.950 ns</td><td>1.290 ns</td><td>0.89</td><td>0.09</td><td>-</td><td>NA</td>
+</tr></tbody></table>
+</body>
+</html>

@@ -2,7 +2,13 @@
 
 `Tedd.WriteableBitmap.Maui` provides a directly mutable native pixel swap chain and a dedicated GPU-backed view for .NET MAUI on Android, iOS, Mac Catalyst, and Windows.
 
+The package includes explicit `net10.0` and `net11.0` assemblies so both .NET versions appear in NuGet's included frameworks. .NET 11 support is preliminary while [.NET 11 remains in preview](https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-11/overview). The library uses platform-neutral MAUI APIs; MAUI and SkiaSharp resolve their native assets for each application's target platform.
+
 It does not encode frames, allocate `ImageSource` streams, or copy pixels into managed staging images. SkiaSharp owns the native buffers; `WriteableBitmapView` submits the newest completed frame to its GPU-backed surface. Normal CPU-to-GPU upload still occurs.
+
+The first presentation of each published frame uses a transient image. A second presentation creates a reusable immutable image; further unchanged redraws reuse it without managed allocation. Publishing new pixels retires the corresponding cached image before that buffer can be written again. Spans use cached allocation metadata, and lease access validates an atomic generation while acquisition and publication remain synchronized.
+
+The repository's `benchmarks` directory contains BenchmarkDotNet comparisons, archived source for every optimization, and test results. Measurements cover CPU access, color generation and raster drawing; they do not establish GPU or device frame rates.
 
 ## Configure MAUI
 

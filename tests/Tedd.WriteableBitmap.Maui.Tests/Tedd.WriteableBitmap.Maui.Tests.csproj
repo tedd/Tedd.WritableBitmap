@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -11,6 +11,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
+    <PackageReference Include="coverlet.collector" Version="10.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
       <PrivateAssets>all</PrivateAssets>
@@ -19,7 +23,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Tedd.WriteableBitmap.Maui\Tedd.WriteableBitmap.Maui.csproj" />
+    <ProjectReference Include="..\..\src\Tedd.WriteableBitmap.Maui\Tedd.WriteableBitmap.Maui.csproj" Condition="'$(BitmapArchive)' == ''" />
+    <ProjectReference Include="..\..\benchmarks\archives\$(BitmapArchive)\$(BitmapArchive).csproj" Condition="'$(BitmapArchive)' != ''" />
   </ItemGroup>
 
 </Project>
+

@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -18,9 +19,12 @@ namespace Tedd
         public InteropBitmap BitmapSource { get; private set; }
         public readonly int Width;
         public readonly int Height;
+        /// <summary>The number of bytes in the pixel buffer, including row padding.</summary>
         public readonly int Length;
         public readonly int BytesPerPixel;
+        /// <summary>The number of bytes between adjacent pixel rows.</summary>
         public readonly int Stride;
+        /// <summary>The offset of the pixel buffer within the memory section. Spans and pointers begin here.</summary>
         public readonly int Offset;
         public readonly PixelFormat PixelFormat;
 
@@ -30,65 +34,69 @@ namespace Tedd
         private readonly IntPtr _memoryMapSection;
 
         #region Ctor
+        /// <summary>Maps a borrowed memory section with an explicit pixel layout. The caller retains ownership of the section handle.</summary>
         public WriteableBitmap(IntPtr intPtr, int width, int height, PixelFormat pixelFormat, int stride, int offset)
+            : this(intPtr, width, height, pixelFormat, stride, offset, false)
         {
+        }
+        /// <summary>Maps a borrowed memory section using four-byte-aligned rows. The caller retains ownership of the section handle.</summary>
+        public WriteableBitmap(IntPtr intPtr, int width, int height, PixelFormat pixelFormat)
+            : this(intPtr, width, height, pixelFormat, CalculateStride(pixelFormat, width), 0, false)
+        {
+        }
+
+        public WriteableBitmap(int width, int height, PixelFormat pixelFormat)
+            : this(IntPtr.Zero, width, height, pixelFormat, CalculateStride(pixelFormat, width), 0, true)
+        {
+        }
+
+        private WriteableBitmap(IntPtr intPtr, int width, int height, PixelFormat pixelFormat, int stride, int offset, bool ownsSection)
+        {
+            if (width <= 0)
+                throw new ArgumentOutOfRangeException(nameof(width));
+            if (height <= 0)
+                throw new ArgumentOutOfRangeException(nameof(height));
+            if (pixelFormat == default(PixelFormat))
+                throw new ArgumentException("A concrete pixel format is required.", nameof(pixelFormat));
+            if (stride < ((long)width * pixelFormat.BitsPerPixel + 7) / 8)
+                throw new ArgumentOutOfRangeException(nameof(stride));
+            if (offset < 0)
+                throw new ArgumentOutOfRangeException(nameof(offset));
+            if (!ownsSection && (intPtr == IntPtr.Zero || intPtr == new IntPtr(-1)))
+                throw new ArgumentException("A valid memory section handle is required.", nameof(intPtr));
+
             Width = width;
             Height = height;
             PixelFormat = pixelFormat;
             Stride = stride;
             Offset = offset;
             BytesPerPixel = ((pixelFormat.BitsPerPixel + 7) / 8);
-            Length = width * height * BytesPerPixel;
+            Length = checked(stride * height);
+            var mappedLength = checked(offset + Length);
 
             _memoryMapSection = intPtr;
+            try
+            {
+                if (ownsSection)
+                {
+                    _memoryMapSection = Win32Interop.CreateFileMapping(new IntPtr(-1), IntPtr.Zero, 0x04, 0, (UInt32)mappedLength, null);
+                    if (_memoryMapSection == IntPtr.Zero)
+                        throw new Win32Exception(Marshal.GetLastWin32Error());
+                    _mustDisposeMemoryMapSection = true;
+                }
 
-            _mapView = Win32Interop.MapViewOfFile(_memoryMapSection, 0xF001F, 0, 0, (UInt32)Length);
-            _mustDisposeMapView = true;
+                _mapView = Win32Interop.MapViewOfFile(_memoryMapSection, 0xF001F, 0, 0, (UInt32)mappedLength);
+                if (_mapView == IntPtr.Zero)
+                    throw new Win32Exception(Marshal.GetLastWin32Error());
+                _mustDisposeMapView = true;
 
-
-            BitmapSource = (InteropBitmap)Imaging.CreateBitmapSourceFromMemorySection(_mapView, width, height, pixelFormat, Stride, Offset);
-        }
-
-
-
-        public WriteableBitmap(IntPtr intPtr, int width, int height, PixelFormat pixelFormat)
-        {
-            Width = width;
-            Height = height;
-            PixelFormat = pixelFormat;
-            Stride = CalculateStride(pixelFormat, width);
-            Offset = 0;
-            BytesPerPixel = ((pixelFormat.BitsPerPixel + 7) / 8);
-            Length = width * height * BytesPerPixel;
-
-            _memoryMapSection = intPtr;
-
-            _mapView = Win32Interop.MapViewOfFile(_memoryMapSection, 0xF001F, 0, 0, (UInt32)Length);
-            _mustDisposeMapView = true;
-
-            BitmapSource = (InteropBitmap)Imaging.CreateBitmapSourceFromMemorySection(_mapView, width, height, pixelFormat, Stride, Offset);
-        }
-
-        public WriteableBitmap(int width, int height, PixelFormat pixelFormat)
-        {
-            Width = width;
-            Height = height;
-            PixelFormat = pixelFormat;
-            Stride = CalculateStride(pixelFormat, width);
-            Offset = 0;
-            BytesPerPixel = ((pixelFormat.BitsPerPixel + 7) / 8);
-            Length = width * height * BytesPerPixel;
-
-            //IntPtr = Marshal.AllocHGlobal(Length);
-            //this.MemoryMappedFile = MemoryMappedFile.CreateNew(null, Length, MemoryMappedFileAccess.ReadWrite);
-            //IntPtr = this.MemoryMappedFile.CreateViewAccessor().SafeMemoryMappedViewHandle.DangerousGetHandle();
-
-            _memoryMapSection = Win32Interop.CreateFileMapping(new IntPtr(-1), IntPtr.Zero, 0x04, 0, (UInt32)Length, null);
-            _mustDisposeMemoryMapSection = true;
-            _mapView = Win32Interop.MapViewOfFile(_memoryMapSection, 0xF001F, 0, 0, (UInt32)Length);
-            _mustDisposeMapView = true;
-
-            BitmapSource = (InteropBitmap)Imaging.CreateBitmapSourceFromMemorySection(_memoryMapSection, width, height, pixelFormat, Stride, Offset);
+                BitmapSource = (InteropBitmap)Imaging.CreateBitmapSourceFromMemorySection(_memoryMapSection, width, height, pixelFormat, Stride, Offset);
+            }
+            catch
+            {
+                ReleaseUnmanagedResources();
+                throw;
+            }
         }
 
 
@@ -99,45 +107,50 @@ namespace Tedd
         public unsafe void* ToUnsafePointer(out int length)
         {
             length = Length;
-            return (void*)_mapView;
+            return (byte*)_mapView + Offset;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe IntPtr ToUnsafeIntPtr(out int length)
         {
             length = Length;
-            return (IntPtr)_mapView;
+            return IntPtr.Add(_mapView, Offset);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe UInt16* ToUnsafeUInt16(out int length)
         {
             length = Length / sizeof(UInt16);
-            return (UInt16*)_mapView;
+            return (UInt16*)((byte*)_mapView + Offset);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe UInt32* ToUnsafeUInt32(out int length)
         {
             length = Length / sizeof(UInt32);
-            return (UInt32*)_mapView;
+            return (UInt32*)((byte*)_mapView + Offset);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe Span<byte> ToSpanByte() => new Span<byte>((byte*)_mapView, Length);
+        public unsafe Span<byte> ToSpanByte() => new Span<byte>((byte*)_mapView + Offset, Length);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe Span<UInt16> ToSpanUInt16() => new Span<UInt16>((UInt16*)_mapView, Length / sizeof(UInt16));
+        public unsafe Span<UInt16> ToSpanUInt16() => new Span<UInt16>((byte*)_mapView + Offset, Length / sizeof(UInt16));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe Span<UInt32> ToSpanUInt32() => new Span<UInt32>((UInt32*)_mapView, Length / sizeof(UInt32));
+        public unsafe Span<UInt32> ToSpanUInt32() => new Span<UInt32>((byte*)_mapView + Offset, Length / sizeof(UInt32));
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int CalculateStride(PixelFormat pixelFormat, int width)
         {
-            int bytesPerPixel = (pixelFormat.BitsPerPixel + 7) / 8;
-            return 4 * ((width * bytesPerPixel + 3) / 4);
+            if (width <= 0)
+                throw new ArgumentOutOfRangeException(nameof(width));
+            if (pixelFormat == default(PixelFormat))
+                throw new ArgumentException("A concrete pixel format is required.", nameof(pixelFormat));
+            return checked((int)(((long)width * pixelFormat.BitsPerPixel + 31) / 32 * 4));
         }
 
+        /// <summary>Returns the logical row-major pixel index without bounds checks.</summary>
+        /// <remarks>This index does not include row padding. For byte-aligned pixel formats, address a padded byte buffer using y * Stride + x * BytesPerPixel.</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetIndex(int x, int y) => y * Width + x;
 
@@ -204,7 +217,7 @@ namespace Tedd
         //            throw new Exception("Unsupported pixel byte size, can't use indexer. Use direct pointer or span to modify.");
         //    }
         //}
-        public void Clear() => ToSpanUInt32().Clear();
+        public void Clear() => ToSpanByte().Clear();
 
 
 
@@ -218,20 +231,20 @@ namespace Tedd
             fcb.Source = frame;
             fcb.DestinationFormat = PixelFormat;
             fcb.EndInit();
-            var rect = new Int32Rect(0, 0, Math.Min((int)frame.Width, Width), Math.Min((int)frame.Height, Height));
+            var rect = new Int32Rect(0, 0, Math.Min(frame.PixelWidth, Width), Math.Min(frame.PixelHeight, Height));
             fcb.CopyPixels(rect, ToUnsafeIntPtr(out var length), length, Stride);
         }
 
-        private BitmapDecoder GetDecoder(string filename) => Path.GetExtension(filename).ToLower() switch
+        private BitmapDecoder GetDecoder(string filename) => Path.GetExtension(filename).ToLowerInvariant() switch
         {
-            ".jpg" => new JpegBitmapDecoder(new Uri(filename, UriKind.RelativeOrAbsolute), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default),
-            ".jpeg" => new JpegBitmapDecoder(new Uri(filename, UriKind.RelativeOrAbsolute), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default),
-            ".png" => new PngBitmapDecoder(new Uri(filename, UriKind.RelativeOrAbsolute), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default),
-            ".bmp" => new PngBitmapDecoder(new Uri(filename, UriKind.RelativeOrAbsolute), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default),
-            ".gif" => new GifBitmapDecoder(new Uri(filename, UriKind.RelativeOrAbsolute), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default),
-            ".wmp" => new WmpBitmapDecoder(new Uri(filename, UriKind.RelativeOrAbsolute), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default),
-            ".ico" => new IconBitmapDecoder(new Uri(filename, UriKind.RelativeOrAbsolute), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default),
-            ".tif" => new TiffBitmapDecoder(new Uri(filename, UriKind.RelativeOrAbsolute), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default),
+            ".jpg" => new JpegBitmapDecoder(new Uri(filename, UriKind.RelativeOrAbsolute), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad),
+            ".jpeg" => new JpegBitmapDecoder(new Uri(filename, UriKind.RelativeOrAbsolute), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad),
+            ".png" => new PngBitmapDecoder(new Uri(filename, UriKind.RelativeOrAbsolute), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad),
+            ".bmp" => new BmpBitmapDecoder(new Uri(filename, UriKind.RelativeOrAbsolute), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad),
+            ".gif" => new GifBitmapDecoder(new Uri(filename, UriKind.RelativeOrAbsolute), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad),
+            ".wmp" => new WmpBitmapDecoder(new Uri(filename, UriKind.RelativeOrAbsolute), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad),
+            ".ico" => new IconBitmapDecoder(new Uri(filename, UriKind.RelativeOrAbsolute), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad),
+            ".tif" => new TiffBitmapDecoder(new Uri(filename, UriKind.RelativeOrAbsolute), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad),
             _ => throw new Exception("Unknown format")
         };
 
@@ -322,3 +335,4 @@ namespace Tedd
     }
 
 }
+

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net10.0;net11.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -18,8 +18,8 @@
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.1.0</Version>
-    <PackageReleaseNotes>Adds a directly mutable, platform-native pixel buffer and GPU-backed .NET MAUI view for Android, iOS, Mac Catalyst, and Windows.</PackageReleaseNotes>
+    <Version>1.1.1</Version>
+    <PackageReleaseNotes>Adds explicit .NET 10 and .NET 11 preview assets. Optimizes native span access, lease validation, circular buffer selection, premultiplied color packing, and repeated presentation with adaptive image caching. Includes archived BenchmarkDotNet comparisons and regression coverage.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

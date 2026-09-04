@@ -1,0 +1,19 @@
+[
+  {
+    "Package": "Tedd.WriteableBitmap.1.0.5.nupkg",
+    "Assets": [
+      "lib/net10.0-windows7.0/Tedd.WriteableBitmap.dll",
+      "lib/net11.0-windows7.0/Tedd.WriteableBitmap.dll",
+      "lib/net462/Tedd.WriteableBitmap.dll",
+      "lib/net6.0-windows7.0/Tedd.WriteableBitmap.dll",
+      "lib/netcoreapp3.1/Tedd.WriteableBitmap.dll"
+    ]
+  },
+  {
+    "Package": "Tedd.WriteableBitmap.Maui.1.1.1.nupkg",
+    "Assets": [
+      "lib/net10.0/Tedd.WriteableBitmap.Maui.dll",
+      "lib/net11.0/Tedd.WriteableBitmap.Maui.dll"
+    ]
+  }
+]

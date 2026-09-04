@@ -2,10 +2,25 @@
 
 This repository contains two deliberately separate packages:
 
-- `Tedd.WriteableBitmap` for WPF on .NET Framework 4.6.2 or later, .NET Core 3.1, and .NET 6.0 or later.
-- `Tedd.WriteableBitmap.Maui` for .NET 10 MAUI on Android, iOS, Mac Catalyst, and Windows.
+- `Tedd.WriteableBitmap` for WPF on .NET Framework 4.6.2 or later, .NET Core 3.1, and .NET 6.0 or later, with explicit .NET 10 and .NET 11 preview targets.
+- `Tedd.WriteableBitmap.Maui` for .NET 10 and .NET 11 preview MAUI on Android, iOS, Mac Catalyst, and Windows.
+
+## Framework support
+
+| NuGet package | Included target frameworks |
+| --- | --- |
+| `Tedd.WriteableBitmap` | `net462`, `netcoreapp3.1`, `net6.0-windows`, `net10.0-windows`, `net11.0-windows` |
+| `Tedd.WriteableBitmap.Maui` | `net10.0`, `net11.0` |
+
+The packages include separately compiled .NET 10 and .NET 11 assemblies so NuGet can list both frameworks as included assets. The MAUI library targets the platform-neutral frameworks; its MAUI and SkiaSharp dependencies provide platform-specific implementations. See [NuGet multi-targeting](https://learn.microsoft.com/en-us/nuget/create-packages/supporting-multiple-target-frameworks).
+
+.NET 11 support is preliminary: [.NET 11 is currently in preview](https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-11/overview). Building every target requires the .NET 11 preview SDK selected by `global.json`. Install the .NET 10 SDK as well to run .NET 10 tests and platform compatibility checks. No MAUI workload is needed to build the library itself; MAUI application consumers require their platform workloads.
 
 The MAUI package uses a directly mutable, platform-native triple buffer and a GPU-backed `SKGLView`. It avoids frame encoding and managed staging images while allowing CPU frame production to overlap GPU presentation; normal CPU-to-GPU upload still occurs. See the [MAUI package documentation](src/Tedd.WriteableBitmap.Maui/README.md) for registration, XAML, threading, and pixel-format requirements.
+
+See [unit tests and coverage](tests/README.md) for running the WPF and MAUI suites and generating coverage reports.
+
+See [benchmarks and archived optimizations](benchmarks/README.md) for BenchmarkDotNet workloads, preserved source versions, test gates, and measured results.
 
 ## WPF
 

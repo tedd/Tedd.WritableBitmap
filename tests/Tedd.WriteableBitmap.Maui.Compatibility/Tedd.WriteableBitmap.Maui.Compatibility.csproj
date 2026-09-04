@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
-    <TeddMauiPackageVersion Condition="'$(TeddMauiPackageVersion)' == ''">1.1.0</TeddMauiPackageVersion>
+    <TeddMauiPackageVersion Condition="'$(TeddMauiPackageVersion)' == ''">1.1.1</TeddMauiPackageVersion>
   </PropertyGroup>
 
   <ItemGroup>
