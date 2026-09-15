@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Tedd.WriteableBitmap pixel mark</title>
+  <rect width="64" height="64" rx="12" fill="#13282f"/>
+  <path fill="#54c9bd" d="M14 14h10v10H14zm13 0h10v10H27zm13 0h10v10H40zM14 27h10v10H14zm26 0h10v10H40zM14 40h10v10H14zm13 0h10v10H27z"/>
+  <path fill="#e08a54" d="M27 27h10v10H27zm13 13h10v10H40z"/>
+</svg>

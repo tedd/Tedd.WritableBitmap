@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7faf9">
+  <meta name="description" content="Tedd.WriteableBitmap provides direct native pixel access and efficient presentation for WPF and .NET MAUI applications.">
+  <title>Tedd.WriteableBitmap — Direct pixel access for WPF and .NET MAUI</title>
+  <link rel="icon" href="assets/bitmap-mark.svg" type="image/svg+xml">
+  <script>document.documentElement.classList.add('js')</script>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Tedd.WriteableBitmap home">
+      <img src="assets/bitmap-mark.svg" width="34" height="34" alt="">
+      <span>TEDD<span class="brand-slash">/</span>WRITEABLEBITMAP</span>
+    </a>
+    <nav aria-label="Primary navigation">
+      <a href="#packages">Packages</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#install">Install</a>
+      <a href="#support">Frameworks</a>
+      <a href="https://github.com/tedd/Tedd.WritableBitmap">Source</a>
+      <a class="nav-cta" href="#install">Use the library</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="hero-copy">
+        <p class="eyebrow"><span></span> Open-source .NET graphics library</p>
+        <h1>Write pixels directly.<br><em>Present them efficiently.</em></h1>
+        <p class="lede">Tedd.WriteableBitmap exposes native bitmap storage as spans or pointers, then connects that storage to WPF or a GPU-backed .NET MAUI view.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#install"><span>Install from NuGet</span><span aria-hidden="true">↓</span></a>
+          <a class="button secondary" href="https://github.com/tedd/Tedd.WritableBitmap">View source <span aria-hidden="true">↗</span></a>
+        </div>
+        <ul class="hero-checks" aria-label="Library summary">
+          <li>WPF and .NET MAUI packages</li>
+          <li>Direct <code>Span&lt;T&gt;</code> and pointer access</li>
+          <li>MIT licensed</li>
+        </ul>
+      </div>
+
+      <figure class="pixel-window" aria-label="Direct pixel-buffer workflow">
+        <div class="window-bar"><span></span><span></span><span></span><b>frame-buffer.cs</b></div>
+        <div class="pixel-stage">
+          <div class="pixel-canvas" aria-hidden="true">
+            <span class="pixel-shape shape-a"></span>
+            <span class="pixel-shape shape-b"></span>
+            <span class="pixel-shape shape-c"></span>
+          </div>
+          <div class="buffer-route" aria-hidden="true">
+            <span>CPU WRITE</span><i></i><span>NATIVE BUFFER</span><i></i><span>PRESENT</span>
+          </div>
+          <pre><code><span class="kw">private readonly</span> WriteableBitmap _bitmap = <span class="kw">new</span>(
+    <span class="num">640</span>, <span class="num">360</span>, PixelFormats.Bgra32);
+
+<span class="kw">var</span> pixels = _bitmap.ToSpanUInt32();
+pixels.Fill(WriteableBitmap.FromRgba(
+    <span class="num">8</span>, <span class="num">127</span>, <span class="num">120</span>, <span class="num">255</span>));
+_bitmap.Invalidate();</code></pre>
+        </div>
+        <figcaption><strong>Address the buffer as memory.</strong> Publish only when the frame is ready.</figcaption>
+      </figure>
+    </section>
+
+    <section class="proof-strip" aria-label="Technical summary">
+      <p><strong>2 packages</strong><span>WPF and .NET MAUI</span></p>
+      <p><strong>3 native buffers</strong><span>Default MAUI swap chain</span></p>
+      <p><strong>No frame encoding</strong><span>Direct mutable storage</span></p>
+      <p><strong>MIT</strong><span>Permissive open-source license</span></p>
+    </section>
+
+    <section class="packages section-shell" id="packages">
+      <div class="section-intro reveal">
+        <div>
+          <p class="eyebrow">Two presentation systems</p>
+          <h2>Select the package for the application model.</h2>
+        </div>
+        <p>The WPF and MAUI implementations are deliberately separate. Each package exposes direct pixel storage through an API designed for its presentation stack.</p>
+      </div>
+
+      <div class="package-grid">
+        <article class="package-card reveal">
+          <div class="package-number">01</div>
+          <p class="card-kicker">Windows desktop</p>
+          <h3>Tedd.WriteableBitmap</h3>
+          <p>Backs a WPF <code>InteropBitmap</code> with an unmanaged memory section. Write through a span or pointer, invalidate the bitmap, and bind <code>BitmapSource</code> to an <code>Image</code>.</p>
+          <ul>
+            <li>Byte, 16-bit, and 32-bit span access</li>
+            <li>Raw pointer and <code>IntPtr</code> access</li>
+            <li>Owned or borrowed memory sections</li>
+            <li>Stride-aware image loading</li>
+          </ul>
+          <a href="https://www.nuget.org/packages/Tedd.WriteableBitmap">Open WPF package on NuGet <span aria-hidden="true">↗</span></a>
+        </article>
+
+        <article class="package-card featured reveal">
+          <div class="package-number">02</div>
+          <p class="card-kicker">Cross-platform UI</p>
+          <h3>Tedd.WriteableBitmap.Maui</h3>
+          <p>Provides a platform-native pixel swap chain and a dedicated <code>SKGLView</code>. A nonblocking write lease allows CPU frame production to overlap GPU presentation.</p>
+          <ul>
+            <li>Allocation-free, stack-only write leases</li>
+            <li>Three native buffers by default</li>
+            <li>Coalesced UI-thread redraw requests</li>
+            <li>Nearest or linear sampling</li>
+          </ul>
+          <a href="https://www.nuget.org/packages/Tedd.WriteableBitmap.Maui">Open MAUI package on NuGet <span aria-hidden="true">↗</span></a>
+        </article>
+      </div>
+    </section>
+
+    <section class="architecture section-shell" id="architecture">
+      <div class="architecture-heading reveal">
+        <p class="eyebrow">Explicit data path</p>
+        <h2>Memory remains under application control.</h2>
+        <p>The library removes per-pixel presentation calls from the hot path. The application writes a complete frame in native storage and signals when presentation may proceed.</p>
+      </div>
+      <div class="architecture-flows reveal">
+        <article>
+          <header><span>WPF</span><strong>Shared memory section</strong></header>
+          <ol>
+            <li><b>1</b><div><strong>Allocate or map</strong><span>Create storage or map a caller-owned section.</span></div></li>
+            <li><b>2</b><div><strong>Write pixels</strong><span>Use a typed span, pointer, or <code>IntPtr</code>.</span></div></li>
+            <li><b>3</b><div><strong>Invalidate</strong><span>Notify the bound <code>InteropBitmap</code>.</span></div></li>
+          </ol>
+        </article>
+        <article>
+          <header><span>MAUI</span><strong>Native swap chain</strong></header>
+          <ol>
+            <li><b>1</b><div><strong>Acquire a lease</strong><span>Select a free back buffer without blocking.</span></div></li>
+            <li><b>2</b><div><strong>Write the frame</strong><span>Respect the reported stride and native color type.</span></div></li>
+            <li><b>3</b><div><strong>Dispose the lease</strong><span>Publish the buffer and request a coalesced redraw.</span></div></li>
+          </ol>
+        </article>
+      </div>
+    </section>
+
+    <section class="principles section-shell">
+      <div class="section-intro reveal">
+        <div>
+          <p class="eyebrow">Graphics primitives</p>
+          <h2>Low-level access with explicit contracts.</h2>
+        </div>
+        <p>Dimensions, stride, color layout, ownership, and publication remain visible. The API does not conceal buffer semantics that affect correctness.</p>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card featured reveal"><span class="feature-icon">▦</span><p class="card-kicker">Memory layout</p><h3>Stride-aware addressing</h3><p>Each bitmap reports the byte distance between adjacent rows. MAUI pixel indexing accounts for row padding.</p></article>
+        <article class="feature-card reveal"><span class="feature-icon">&lt;/&gt;</span><h3>Typed direct access</h3><p>Use byte, 16-bit, or 32-bit spans and pointers according to the selected pixel format.</p></article>
+        <article class="feature-card reveal"><span class="feature-icon">⇄</span><h3>Concurrent presentation</h3><p>MAUI write leases prevent a producer from modifying buffers retained by Skia during presentation.</p></article>
+        <article class="feature-card reveal"><span class="feature-icon">◇</span><h3>Native color layout</h3><p>MAUI uses the platform-native 32-bit Skia color type with premultiplied alpha.</p></article>
+        <article class="feature-card reveal"><span class="feature-icon">⌁</span><h3>No managed staging image</h3><p>Frames remain in native bitmap storage; normal CPU-to-GPU upload still occurs during MAUI presentation.</p></article>
+        <article class="feature-card reveal"><span class="feature-icon">⊞</span><h3>Binding-ready output</h3><p>WPF exposes <code>BitmapSource</code>. MAUI exposes a bindable <code>WriteableBitmapView</code>.</p></article>
+      </div>
+    </section>
+
+    <section class="install section-shell" id="install">
+      <div class="install-copy reveal">
+        <p class="eyebrow">NuGet installation</p>
+        <h2>Install one package.<br>Write one frame.</h2>
+        <p>Select a package to view its installation command and minimum working pattern.</p>
+        <div class="package-tabs" role="tablist" aria-label="Package examples">
+          <button id="tab-wpf" type="button" role="tab" aria-selected="true" aria-controls="panel-wpf" data-package-tab="wpf">WPF</button>
+          <button id="tab-maui" type="button" role="tab" aria-selected="false" aria-controls="panel-maui" data-package-tab="maui" tabindex="-1">.NET MAUI</button>
+        </div>
+        <p class="contract-note"><strong>MAUI buffer contract:</strong> Write every pixel required by a new frame. A leased back buffer may contain an older frame.</p>
+      </div>
+
+      <div class="code-workbench reveal">
+        <section id="panel-wpf" role="tabpanel" aria-labelledby="tab-wpf" data-package-panel="wpf">
+          <div class="command-row"><code>dotnet add package Tedd.WriteableBitmap</code><button type="button" data-copy="dotnet add package Tedd.WriteableBitmap">Copy</button></div>
+          <div class="code-head"><span>WPF · MainWindow.xaml.cs</span><button type="button" data-copy-target="wpf-code">Copy code</button></div>
+          <pre id="wpf-code"><code><span class="kw">using</span> System;
+<span class="kw">using</span> System.Windows.Media;
+<span class="kw">using</span> Tedd;
+
+<span class="kw">private readonly</span> WriteableBitmap _bitmap = <span class="kw">new</span>(
+    <span class="num">640</span>, <span class="num">360</span>, PixelFormats.Bgra32);
+
+<span class="kw">private void</span> RenderFrame()
+{
+    <span class="kw">var</span> pixels = _bitmap.ToSpanUInt32();
+    pixels.Fill(WriteableBitmap.FromRgba(
+        r: <span class="num">8</span>, g: <span class="num">127</span>, b: <span class="num">120</span>, a: <span class="num">255</span>));
+
+    _bitmap.Invalidate();
+    Preview.Source = _bitmap.BitmapSource;
+}
+
+<span class="kw">protected override void</span> OnClosed(EventArgs e)
+{
+    _bitmap.Dispose();
+    <span class="kw">base</span>.OnClosed(e);
+}</code></pre>
+        </section>
+
+        <section id="panel-maui" role="tabpanel" aria-labelledby="tab-maui" data-package-panel="maui" hidden>
+          <div class="command-row"><code>dotnet add package Tedd.WriteableBitmap.Maui</code><button type="button" data-copy="dotnet add package Tedd.WriteableBitmap.Maui">Copy</button></div>
+          <div class="code-head"><span>MAUI · frame producer</span><button type="button" data-copy-target="maui-code">Copy code</button></div>
+          <pre id="maui-code"><code><span class="kw">using</span> Tedd.Maui;
+
+<span class="kw">if</span> (!Bitmap.TryBeginWrite(<span class="kw">out var</span> write))
+    <span class="kw">return</span>;
+
+<span class="kw">try</span>
+{
+    <span class="kw">var</span> pixels = write.Pixels;
+    pixels.Fill(WriteableBitmap.FromRgba(
+        r: <span class="num">8</span>, g: <span class="num">127</span>, b: <span class="num">120</span>, a: <span class="num">255</span>));
+}
+<span class="kw">finally</span>
+{
+    write.Dispose(); <span class="comment">// Publishes the frame.</span>
+}</code></pre>
+        </section>
+      </div>
+    </section>
+
+    <section class="support section-shell" id="support">
+      <div class="support-heading reveal">
+        <p class="eyebrow">Target frameworks</p>
+        <h2>Use the runtime required by the application.</h2>
+      </div>
+      <div class="support-table-wrap reveal">
+        <table class="support-table">
+          <caption>Package framework support</caption>
+          <thead>
+            <tr><th scope="col">Package</th><th scope="col">Included target frameworks</th><th scope="col">Presentation</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Tedd.WriteableBitmap</th>
+              <td><code>net462</code> · <code>netcoreapp3.1</code> · <code>net6.0-windows</code> · <code>net10.0-windows</code> · <code>net11.0-windows</code></td>
+              <td>WPF <code>InteropBitmap</code></td>
+            </tr>
+            <tr>
+              <th scope="row">Tedd.WriteableBitmap.Maui</th>
+              <td><code>net10.0</code> · <code>net11.0</code></td>
+              <td>SkiaSharp <code>SKGLView</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="support-note reveal">.NET 11 support is preliminary while .NET 11 remains in preview. MAUI applications require the workload for each target platform.</p>
+    </section>
+
+    <section class="evidence-band">
+      <div class="reveal">
+        <p class="eyebrow">Inspect the implementation</p>
+        <h2>Tests, benchmarks, and source are included.</h2>
+      </div>
+      <div class="evidence-links reveal">
+        <a href="https://github.com/tedd/Tedd.WritableBitmap/tree/main/tests"><span>TESTS</span><strong>Correctness and lifetime coverage</strong><i aria-hidden="true">↗</i></a>
+        <a href="https://github.com/tedd/Tedd.WritableBitmap/tree/main/benchmarks"><span>BENCHMARKS</span><strong>BenchmarkDotNet workloads and archives</strong><i aria-hidden="true">↗</i></a>
+        <a href="https://github.com/tedd/Tedd.WritableBitmap"><span>SOURCE</span><strong>Implementation and package documentation</strong><i aria-hidden="true">↗</i></a>
+      </div>
+    </section>
+
+    <section class="final-cta">
+      <div class="cta-grid" aria-hidden="true"></div>
+      <p class="eyebrow">Direct bitmap memory for .NET</p>
+      <h2>Control the pixels.<br><span>Keep the data path explicit.</span></h2>
+      <p>Install the WPF or .NET MAUI package from NuGet.</p>
+      <div class="hero-actions centered">
+        <a class="button primary" href="#install">View installation <span aria-hidden="true">↓</span></a>
+        <a class="button secondary" href="https://github.com/tedd/Tedd.WritableBitmap#framework-support">Read the documentation <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <a class="brand" href="#top"><img src="assets/bitmap-mark.svg" width="28" height="28" alt=""><span>TEDD/WRITEABLEBITMAP</span></a>
+    <p>Open-source software for WPF and .NET MAUI.</p>
+    <div><a href="https://www.nuget.org/profiles/Tedd">NuGet</a><a href="https://github.com/tedd/Tedd.WritableBitmap">Source</a><a href="https://github.com/tedd/Tedd.WritableBitmap/blob/main/LICENSE">MIT</a></div>
+  </footer>
+</body>
+</html>
